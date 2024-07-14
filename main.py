@@ -1,10 +1,10 @@
 from contextlib import asynccontextmanager
 
 import asyncpg
+from fastapi import FastAPI
 from pydantic import BaseModel
 
 import constants
-from fastapi import FastAPI
 from utils import get_consistent_hash_obj, get_db_configs, get_url_id, hash_url
 
 
@@ -52,16 +52,14 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/url/{url_id}")
 async def get_url(url_id: str):
     shard = servers.get_node(url_id)
-    if not shard:
-        return {"error": "No shard found for url_id"}
 
-    pool = None
-    if shard == constants.PG_SHARD1:
-        pool = pool1
-    elif shard == constants.PG_SHARD2:
-        pool = pool2
-    elif shard == constants.PG_SHARD3:
-        pool = pool3
+    pools = {
+        constants.PG_SHARD1: pool1,
+        constants.PG_SHARD2: pool2,
+        constants.PG_SHARD3: pool3
+    }
+
+    pool = pools.get(shard, pool3)
     async with pool.acquire() as connection:
         async with connection.transaction():
             response = await connection.fetchrow(
@@ -85,13 +83,13 @@ async def create_url(url: Url):
     url_id = get_url_id(url_hash)
 
     shard = servers.get_node(url_id)
+    pools = {
+        constants.PG_SHARD1: pool1,
+        constants.PG_SHARD2: pool2,
+        constants.PG_SHARD3: pool3
+    }
 
-    if shard == constants.PG_SHARD1:
-        pool = pool1
-    elif shard == constants.PG_SHARD2:
-        pool = pool2
-    else:
-        pool = pool3
+    pool = pools.get(shard, pool3)
 
     async with pool.acquire() as connection:
         async with connection.transaction():

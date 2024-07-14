@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  pgshard1:
+    image: pgshard:latest
+    container_name: pgshard1
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+
+  pgshard2:
+    image: pgshard:latest
+    container_name: pgshard2
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+
+  pgshard3:
+    image: pgshard:latest
+    container_name: pgshard3
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi
+    ports:
+      - "8000:8000"
+    depends_on:
+      - pgshard1
+      - pgshard2
+      - pgshard3
+    environment:
+      PG_SHARD1_HOST: pgshard1
+      PG_SHARD2_HOST: pgshard2
+      PG_SHARD3_HOST: pgshard3
+      PG_USER: postgres
+      PG_PASSWORD: password
+      PG_DATABASE: postgres

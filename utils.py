@@ -1,8 +1,16 @@
+import os
 from hashlib import md5
 
 from uhashring import HashRing
 
 import constants
+
+PG_SHARD1_HOST = os.getenv('PG_SHARD1_HOST')
+PG_SHARD2_HOST = os.getenv('PG_SHARD2_HOST')
+PG_SHARD3_HOST = os.getenv('PG_SHARD3_HOST')
+PG_USER = os.getenv('PG_USER', 'postgres')
+PG_PASSWORD = os.getenv('PG_PASSWORD', 'password')
+PG_DATABASE = os.getenv('PG_DATABASE', 'postgres')
 
 
 def hash_url(url):
@@ -15,28 +23,28 @@ def get_url_id(url_digest):
 
 def get_db_configs():
     return {
-        constants.PG_SHARD1: {
-            "user": "postgres",
-            "password": "password",
-            "host": "172.17.0.4", # docker container ip can be found by running `docker inspect <container_id>`
+        "pgshard1": {
+            "user": PG_USER,
+            "password": PG_PASSWORD,
+            "host": PG_SHARD1_HOST,
             "port": "5432",
-            "database": "postgres",
+            "database": PG_DATABASE,
         },
-        constants.PG_SHARD2: {
-            "user": "postgres",
-            "password": "password",
-            "host": "172.17.0.5", # docker container ip can be found by running `docker inspect <container_id>`
+        "pgshard2": {
+            "user": PG_USER,
+            "password": PG_PASSWORD,
+            "host": PG_SHARD2_HOST,
             "port": "5432",
-            "database": "postgres",
+            "database": PG_DATABASE,
         },
-        constants.PG_SHARD3: {
-            "user": "postgres",
-            "password": "password",
-            "host": "172.17.0.6", # docker container ip can be found by running `docker inspect <container_id>`
+        "pgshard3": {
+            "user": PG_USER,
+            "password": PG_PASSWORD,
+            "host": PG_SHARD3_HOST,
             "port": "5432",
-            "database": "postgres",
+            "database": PG_DATABASE,
         },
-    }
+}
 
 
 def get_consistent_hash_obj():
